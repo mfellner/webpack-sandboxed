@@ -1,0 +1,19 @@
+{
+  "name": "webpack-sandboxed",
+  "version": "0.1.0",
+  "description": "Webpack in a sandbox.",
+  "author": "Maximilian Fellner <max.fellner@gmail.com>",
+  "license": "MIT",
+  "main": "index.js",
+  "private": true,
+  "engines": {
+    "node": ">=6"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "memory-fs": "0.3.0",
+    "webpack": "2.1.0-beta.22"
+  }
+}
