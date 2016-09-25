@@ -1,6 +1,6 @@
 const runWebpack = require('./webpack-sandboxed')
 
-const source = 'console.log("Hello!")'
+const source = 'var fs = require("fs");\nconsole.log("Hello!")'
 
 runWebpack(source)
   .then(([bundle, stats]) => {

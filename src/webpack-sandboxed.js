@@ -12,13 +12,7 @@ function runScript(source, globals = {}) {
 }
 
 function createContext(globals) {
-  const _globals = {
-    module: {},
-    exports: {}
-  }
-  _globals.module.exports = _globals.exports
-  const sandbox = Object.assign({}, global, _globals, globals)
-  sandbox.exports = sandbox.module
+  const sandbox = Object.assign({}, global, globals)
   return vm.createContext(sandbox)
 }
 
@@ -49,6 +43,10 @@ function getWebpackScript(entry, outFile) {
     __onComplete(error, bundle, stats)
   })
   `
+}
+
+function loadPackage() {
+  const packagePath = path.resolve('node_modules', name);
 }
 
 function runWebpack(source, onComplete) {
