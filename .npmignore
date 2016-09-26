@@ -1,0 +1,7 @@
+/src
+/test
+.babelrc
+.flowconfig
+.gitignore
+.npmignore
+.DS_Store
