@@ -88,3 +88,27 @@ export async function findDirectory(root: string, name: string, ignore: Array<Re
 
   return moreDirs.reduce((dirs, dir) => dirs.concat(dir), [])
 }
+
+export function stringify(value: mixed, escape: ?string): string {
+  if (value === null || typeof value === 'undefined'){
+    return ''
+  } else if (value instanceof RegExp) {
+    return value.toString()
+  } else if (Array.isArray(value)) {
+    return `[${value.map(e => stringify(e, escape)).join(',')}]`
+  } else if (typeof value === 'object') {
+    let string = '{'
+    const keys = Object.keys(value)
+
+    for (let i = 0; i < keys.length; i += 1) {
+      const key = keys[i]
+      string += `${key}: ${stringify(value[key], escape)}`
+      if (i < keys.length - 1) string += ', '
+    }
+    return string + '}'
+  } else if (typeof value === 'string' && typeof escape === 'string' && value.startsWith(escape)) {
+    return value.substring(escape.length)
+  } else {
+    return JSON.stringify(value)
+  }
+}

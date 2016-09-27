@@ -4,6 +4,7 @@ import vm from 'vm'
 import path from 'path'
 import webpack from 'webpack'
 import * as memoryfs from './memory-fs'
+import * as utils from './utils'
 
 type WebpackBundle = { [key: string]: string }
 type WebpackStats = {
@@ -13,7 +14,20 @@ type WebpackStats = {
   toString: (options: ?Object) => Object
 }
 type WebpackTarget = 'web' | 'webworker' | 'node' | 'async-node' | 'node-webkit' | 'electron'
-type WebpackDefinitions = { [key: string]: string }
+type WebpackConfig = {
+  context?: string,
+  entry?: string | { [key: string]: string },
+  context?: string,
+  output?: {
+    path: string,
+    filename: string
+  },
+  module?: {
+    loaders: Array<Object>,
+  },
+  target?: WebpackTarget,
+  plugins?: Array<Object> | '@plugins'
+}
 type OnComplete = (error: Error, bundle: WebpackBundle, stats: WebpackStats) => void
 
 export class SandboxVM {
@@ -27,7 +41,7 @@ export class SandboxVM {
     const script = new vm.Script(source, {
       displayErrors: true
     })
-    const sandbox = Object.assign({}, this.globals, {__onComplete: onComplete})
+    const sandbox = Object.assign({}, this.globals, {onComplete})
     const context = vm.createContext(sandbox)
 
     return script.runInContext(context)
@@ -37,39 +51,75 @@ export class SandboxVM {
 export class WebpackRunner {
   vm: SandboxVM;
   memfs: memoryfs.MemoryFS;
-  target: WebpackTarget;
   packages: Array<string>;
-  definitions: WebpackDefinitions;
+  entry: string;
+  output: string;
+  plugins: Array<Object>;
+  script: string;
 
-  constructor(vm: SandboxVM, memfs: memoryfs.MemoryFS, target: WebpackTarget, packages: Array<string>, definitions: WebpackDefinitions) {
+  constructor(vm: SandboxVM, memfs: memoryfs.MemoryFS, packages: Array<string>, config: ?WebpackConfig) {
     this.vm = vm
     this.memfs = memfs;
-    this.target = target;
     this.packages = packages;
+
+    this.entry = '/src/entry.js'
+    this.output = '/bundle/[name]-[hash].min.js'
+
+    const baseConfig: WebpackConfig = {
+      context: path.dirname(this.entry),
+      entry: `./${path.basename(this.entry)}`,
+      output: {
+        path: path.dirname(this.output),
+        filename: path.basename(this.output)
+      },
+      module: {
+        loaders: []
+      },
+      plugins: '@plugins' // variable-literal
+    }
+
+    const configString = utils.stringify(Object.assign(baseConfig, config), '@')
+
+    // The webpack script to run in the sandbox VM. Relies on global variables to be present.
+    this.script = `
+    const outDir = '${path.dirname(this.output)}'
+    const outFile = '${path.basename(this.output)}'
+    const compiler = webpack(${configString})
+    compiler.inputFileSystem = fs
+    compiler.resolvers.normal.fileSystem = fs
+    compiler.resolvers.context.fileSystem = fs
+    compiler.outputFileSystem = fs
+    compiler.run((error, stats) => {
+     const files = fs.readdirSync(outDir)
+     const bundle = files.reduce((bundle, file) =>
+       Object.assign(bundle, {[file]: fs.readFileSync(path.join(outDir, file)).toString()})
+     , {})
+     onComplete(error, bundle, stats)
+    })
+    `
   }
 
-  static async createInstance(target: WebpackTarget = 'web', packages: Array<string> = [], definitions: WebpackDefinitions = {}): Promise<WebpackRunner> {
+  static async createInstance(packages: Array<string> = [], config: WebpackConfig = {}): Promise<WebpackRunner> {
+    const {plugins, ...otherConfig} = config
+
     const memfs = await memoryfs.createInstance(packages)
+    // Initialize VM with global variables to be used in the webpack script.
     const vm = new SandboxVM({
-      __path: path,
-      __webpack: webpack,
-      __fs: memfs
+      path: path,
+      webpack: webpack,
+      fs: memfs,
+      plugins: plugins || []
     })
-    const __definitions = Object.assign({'process.env.NODE_ENV': 'production'}, definitions)
-    return new WebpackRunner(vm, memfs, target, packages, __definitions)
+
+    return new WebpackRunner(vm, memfs, packages, otherConfig)
   }
 
   async __run(source: string, onComplete: OnComplete) {
-    const entry = '/src/entry.js'
-    const outFile = '/bundle/[name]-[hash].min.js'
+    this.memfs.mkdirpSync(path.dirname(this.entry))
+    this.memfs.mkdirpSync(path.dirname(this.output))
+    this.memfs.writeFileSync(this.entry, source)
 
-    this.memfs.mkdirpSync(path.dirname(entry))
-    this.memfs.mkdirpSync(path.dirname(outFile))
-    this.memfs.writeFileSync(entry, source)
-
-    const script = createWebpackScript(this.target, entry, outFile, this.definitions)
-
-    this.vm.run(script, (error, bundle, stats) => {
+    this.vm.run(this.script, (error, bundle, stats) => {
       this.memfs.rmdirSync('/src')
       this.memfs.rmdirSync('/bundle')
       onComplete(error, bundle, stats)
@@ -80,41 +130,9 @@ export class WebpackRunner {
     return new Promise(async (resolve, reject) => {
       await this.__run(source, (error, bundle, stats) => {
         if (error) reject(error)
+        else if (stats.hasErrors()) reject(stats.toString())
         else resolve([bundle, stats])
       })
     })
   }
-}
-
-function createWebpackScript(target: WebpackTarget, entry: string, outFile: string, definitions: WebpackDefinitions = {}): string {
-  return `
-  const outDir = '${path.dirname(outFile)}'
-  const outFile = '${path.basename(outFile)}'
-  const compiler = __webpack({
-    target: '${target}',
-    context: '${path.dirname(entry)}',
-    entry: './${path.basename(entry)}',
-    output: {
-      path: outDir,
-      filename: outFile
-    },
-    module: {
-      loaders: []
-    },
-    plugins: [
-      new __webpack.DefinePlugin(${JSON.stringify(definitions)})
-    ]
-  })
-  compiler.inputFileSystem = __fs
-  compiler.resolvers.normal.fileSystem = __fs
-  compiler.resolvers.context.fileSystem = __fs
-  compiler.outputFileSystem = __fs
-  compiler.run((error, stats) => {
-    const files = __fs.readdirSync(outDir)
-    const bundle = files.reduce((bundle, file) =>
-      Object.assign(bundle, {[file]: __fs.readFileSync(__path.join(outDir, file)).toString()})
-    , {})
-    __onComplete(error, bundle, stats)
-  })
-  `
 }
