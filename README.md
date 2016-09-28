@@ -7,7 +7,11 @@ Webpack in a Sandbox.
 ```javascript
 import WebpackSandbox from 'webpack-sandboxed'
 
-const sandbox = await WebpackSandbox.createInstance()
+const options = {
+  config: { /* webpack configuration */ },
+  packages: [ /* names of modules to load in the sandbox */ ]
+}
+const sandbox = await WebpackSandbox.createInstance(options)
 const [bundle, stats] = sandbox.run("exports = {foo: 'bar'};")
 ```
 

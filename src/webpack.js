@@ -29,6 +29,10 @@ type WebpackConfig = {
   plugins?: Array<Object> | '@plugins'
 }
 type OnComplete = (error: Error, bundle: WebpackBundle, stats: WebpackStats) => void
+type Options = {
+  config?: WebpackConfig,
+  packages?: Array<string>
+}
 
 export class SandboxVM {
   globals: Object;
@@ -75,6 +79,10 @@ export class WebpackRunner {
       module: {
         loaders: []
       },
+      resolve: {
+        root: '/',
+        modulesDirectories: ['node_modules']
+      },
       plugins: '@plugins' // variable-literal
     }
 
@@ -85,30 +93,32 @@ export class WebpackRunner {
     const outDir = '${path.dirname(this.output)}'
     const outFile = '${path.basename(this.output)}'
     const compiler = webpack(${configString})
-    compiler.inputFileSystem = fs
-    compiler.resolvers.normal.fileSystem = fs
-    compiler.resolvers.context.fileSystem = fs
-    compiler.outputFileSystem = fs
+    compiler.inputFileSystem = memfs
+    compiler.resolvers.normal.fileSystem = memfs
+    compiler.resolvers.context.fileSystem = memfs
+    compiler.outputFileSystem = memfs
     compiler.run((error, stats) => {
-     const files = fs.readdirSync(outDir)
+     const files = memfs.readdirSync(outDir)
      const bundle = files.reduce((bundle, file) =>
-       Object.assign(bundle, {[file]: fs.readFileSync(path.join(outDir, file)).toString()})
+       Object.assign(bundle, {[file]: memfs.readFileSync(path.join(outDir, file)).toString()})
      , {})
      onComplete(error, bundle, stats)
     })
     `
   }
 
-  static async createInstance(packages: Array<string> = [], config: WebpackConfig = {}): Promise<WebpackRunner> {
+  static async createInstance(options: Options = {}): Promise<WebpackRunner> {
+    const packages = options.packages || []
+    const config = options.config || {}
     const {plugins, ...otherConfig} = config
 
     const memfs = await memoryfs.createInstance(packages)
     // Initialize VM with global variables to be used in the webpack script.
     const vm = new SandboxVM({
-      path: path,
-      webpack: webpack,
-      fs: memfs,
-      plugins: plugins || []
+      path,
+      webpack,
+      plugins,
+      memfs,
     })
 
     return new WebpackRunner(vm, memfs, packages, otherConfig)

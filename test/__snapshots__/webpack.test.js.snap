@@ -49,9 +49,9 @@ exports[`webpack should generate a JavaScript bundle 1`] = `
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
 /******/ 	__webpack_require__.n = function(module) {
 /******/ 		var getter = module && module.__esModule ?
-/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getDefault() { return module[\'default\']; } :
 /******/ 			function getModuleExports() { return module; };
-/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		__webpack_require__.d(getter, \'a\', getter);
 /******/ 		return getter;
 /******/ 	};
 
@@ -59,7 +59,7 @@ exports[`webpack should generate a JavaScript bundle 1`] = `
 /******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
 
 /******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "";
+/******/ 	__webpack_require__.p = \"\";
 
 /******/ 	// Load entry module and return exports
 /******/ 	return __webpack_require__(__webpack_require__.s = 0);
@@ -69,7 +69,7 @@ exports[`webpack should generate a JavaScript bundle 1`] = `
 /* 0 */
 /***/ function(module, exports) {
 
-module.exports = (41 + 1);
+var x = 41 + 1;
 
 /***/ }
 /******/ ]);"
