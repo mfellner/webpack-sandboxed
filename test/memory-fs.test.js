@@ -1,4 +1,4 @@
-import * as memoryfs from '../src/memory-fs'
+import * as memoryfs from '../lib/memory-fs'
 
 describe('memory-fs', () => {
   it('should create an empty memory file-system', async () => {

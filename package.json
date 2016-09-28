@@ -9,7 +9,7 @@
     "node": ">=6"
   },
   "scripts": {
-    "dist": "babel src -d dist",
+    "dist": "rm -rf dist && babel lib -d dist",
     "test": "NODE_ENV=test jest --coverage"
   },
   "peerDependencies": {

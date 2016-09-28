@@ -1,4 +1,4 @@
-import { WebpackRunner, SandboxVM } from '../src/webpack'
+import { WebpackRunner, SandboxVM } from '../lib/webpack'
 
 describe('webpack', () => {
   it('should generate a JavaScript bundle', async () => {

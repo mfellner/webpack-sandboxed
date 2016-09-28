@@ -1,7 +1,7 @@
 // @flow
 
 import webpack from 'webpack'
-import WebpackRunner from '../src/index'
+import WebpackRunner from '../lib'
 
 const source = 'var react = require("react");\nconsole.log("Hello!")'
 
