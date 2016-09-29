@@ -9,7 +9,8 @@ import WebpackSandbox from 'webpack-sandboxed'
 
 const options = {
   config: { /* webpack configuration */ },
-  packages: [ /* names of modules to load in the sandbox */ ]
+  packages: [ /* names of modules to load in the sandbox */ ],
+  includes: [ /* local file paths to load in the sandbox */ ]
 }
 const sandbox = await WebpackSandbox.createInstance(options)
 const [bundle, stats] = sandbox.run("exports = {foo: 'bar'};")

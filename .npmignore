@@ -1,5 +1,7 @@
 /src
+/lib
 /test
+/example
 .babelrc
 .flowconfig
 .gitignore

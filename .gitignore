@@ -89,3 +89,4 @@ jspm_packages
 ### Project ###
 
 #/dist
+/example/index.html

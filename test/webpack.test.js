@@ -1,3 +1,5 @@
+// @flow
+
 import { WebpackRunner, SandboxVM } from '../lib/webpack'
 
 describe('webpack', () => {

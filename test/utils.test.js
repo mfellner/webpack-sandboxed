@@ -1,3 +1,5 @@
+// @flow
+
 import * as utils from '../lib/utils'
 
 describe('utils', () => {
