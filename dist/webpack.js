@@ -104,7 +104,7 @@ class WebpackRunner {
           filename: _path2.default.basename(output)
         }
       };
-      const webpackConfig = Object.assign(baseConfig, config);
+      const webpackConfig = utils.deepAssign(baseConfig, config);
 
       const memfs = yield memoryfs.createInstance({ packages, includes, root });
       memfs.mkdirpSync(_path2.default.dirname(output));

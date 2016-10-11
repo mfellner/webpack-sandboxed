@@ -99,6 +99,7 @@ exports.fsReadFile = fsReadFile;
 exports.fsStat = fsStat;
 exports.fsPipe = fsPipe;
 exports.stringify = stringify;
+exports.deepAssign = deepAssign;
 
 var _fs = require('fs');
 
@@ -168,4 +169,32 @@ function stringify(value, escape) {
   } else {
     return JSON.stringify(value);
   }
+}
+
+function deepAssign(...objects) {
+  const obj = objects[0];
+  for (let i = 1; i < objects.length; i += 1) {
+    const other = objects[i];
+    for (let key of Object.keys(other)) {
+      const val = other[key];
+      if (Array.isArray(val)) {
+        if (Array.isArray(obj[key])) {
+          const arr = [].concat(obj[key]);
+          for (let x of val) {
+            if (!arr.includes(x)) {
+              arr.push(x);
+            }
+          }
+          obj[key] = arr;
+        } else {
+          obj[key] = val;
+        }
+      } else if (typeof val === 'object') {
+        obj[key] = deepAssign({}, obj[key] || {}, val);
+      } else {
+        obj[key] = val;
+      }
+    }
+  }
+  return obj;
 }
