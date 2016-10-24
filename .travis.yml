@@ -11,13 +11,13 @@ cache:
     - .yarn-cache
     - $HOME/.yarn-cache
 before_install:
-  - npm install yarn
+  - npm install -g yarn
 install:
-  - node_modues/.bin/yarn install
+  - yarn install
 before_script:
-  - node_modues/.bin/yarn install coveralls codeclimate-test-reporter
+  - yarn install coveralls codeclimate-test-reporter
 script:
-  - node_modues/.bin/yarn test
+  - yarn test
 after_success:
-  - node_modues/.bin/yarn run coveralls
-  - node_modues/.bin/yarn run codeclimate
+  - yarn run coveralls
+  - yarn run codeclimate
