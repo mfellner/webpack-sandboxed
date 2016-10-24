@@ -3,6 +3,9 @@
 /test
 /example
 /flow-typed
+/coverage
+yarn.lock
+.travis.yml
 .babelrc
 .flowconfig
 .gitignore

@@ -5,13 +5,18 @@
   "author": "Maximilian Fellner <max.fellner@gmail.com>",
   "repository": "https://github.com/mfellner/webpack-sandboxed.git",
   "license": "MIT",
+  "keywords": [
+    "webpack"
+  ],
   "main": "dist/index.js",
   "engines": {
     "node": ">=6"
   },
   "scripts": {
     "dist": "rm -rf dist && babel lib -d dist",
-    "test": "NODE_ENV=test jest --coverage"
+    "test": "NODE_ENV=test jest --coverage",
+    "coveralls": "cat ./coverage/lcov.info | coveralls",
+    "codeclimate": "codeclimate-test-reporter < ./coverage/lcov.info"
   },
   "peerDependencies": {
     "debug": "^2.2.0",
@@ -29,7 +34,8 @@
     "babel-plugin-transform-flow-strip-types": "6.14.0",
     "babel-plugin-transform-object-rest-spread": "6.16.0",
     "babel-preset-latest-minimal": "1.1.2",
-    "jest": "16.0.1"
+    "jest": "16.0.2",
+    "webpack": "^2.1.0-beta.22"
   },
   "jest": {
     "coverageReporters": [

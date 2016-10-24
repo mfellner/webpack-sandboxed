@@ -1,0 +1,25 @@
+sudo: false
+branches:
+  only:
+    - master
+node_js:
+  - "6"
+cache:
+  directories:
+    - node_modules
+    - $HOME/.yarn-cache
+before_install:
+  # Repo for Yarn
+  - apt-key adv --keyserver pgp.mit.edu --recv D101F7899D41F3C3
+  - echo "deb http://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+  - apt-get update -qq
+  - apt-get install -y -qq yarn
+install:
+  - yarn install
+before_script:
+  - yarn install coveralls codeclimate-test-reporter
+script:
+  - yarn test
+after_success:
+  - yarn run coveralls
+  - yarn run codeclimate
