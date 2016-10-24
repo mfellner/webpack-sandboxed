@@ -15,7 +15,7 @@ before_install:
 install:
   - yarn install
 before_script:
-  - yarn install coveralls codeclimate-test-reporter
+  - yarn add coveralls codeclimate-test-reporter
 script:
   - yarn test
 after_success:
