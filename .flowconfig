@@ -1,4 +1,5 @@
 [ignore]
+.*/example/.*
 
 [include]
 
@@ -10,6 +11,3 @@ esproposal.class_static_fields=enable
 esproposal.class_instance_fields=enable
 
 experimental.strict_type_args=true
-
-[version]
-^0.33.0

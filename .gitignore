@@ -88,5 +88,6 @@ jspm_packages
 
 ### Project ###
 
-#/dist
+/dist
 /example/index.html
+/flow-typed
