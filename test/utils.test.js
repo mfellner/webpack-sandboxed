@@ -1,6 +1,6 @@
 // @flow
 
-import * as utils from '../lib/utils'
+import * as utils from '../lib/utils';
 
 describe('utils', () => {
   describe('stringify', () => {
@@ -9,19 +9,19 @@ describe('utils', () => {
         hello: 'world',
         regex: /^foobar$/,
         obj: {
-          arr: [1, 2, {test: true}]
+          arr: [1, 2, { test: true }]
         }
-      }
-      expect(utils.stringify(object)).toMatchSnapshot()
-    })
+      };
+      expect(utils.stringify(object)).toMatchSnapshot();
+    });
 
     it('should escape special strings', async () => {
       const object = {
         foo: '@variable'
-      }
-      expect(utils.stringify(object, '@')).toBe('{foo: variable}')
-    })
-  })
+      };
+      expect(utils.stringify(object, '@')).toBe('{foo: variable}');
+    });
+  });
 
   describe('deepAssign', () => {
     it('should deeply merge two objects', async () => {
@@ -32,7 +32,7 @@ describe('utils', () => {
           x: 1,
           arr: [1, 2, [42]]
         }
-      }
+      };
       const objectB = {
         hello: 'world',
         b: 'b',
@@ -40,7 +40,7 @@ describe('utils', () => {
           y: 2,
           arr: [3, 4, [42]]
         }
-      }
+      };
       const merged = {
         hello: 'world',
         a: 'a',
@@ -50,8 +50,8 @@ describe('utils', () => {
           y: 2,
           arr: [1, 2, [42], 3, 4, [42]]
         }
-      }
-      expect(utils.deepAssign({}, objectA, objectB)).toEqual(merged)
-    })
-  })
-})
+      };
+      expect(utils.deepAssign({}, objectA, objectB)).toEqual(merged);
+    });
+  });
+});
