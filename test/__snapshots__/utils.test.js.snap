@@ -1,1 +1,0 @@
-exports[`utils stringify should stringify a complext object 1`] = `"{hello: \"world\", regex: /^foobar$/, obj: {arr: [1,2,{test: true}]}}"`;

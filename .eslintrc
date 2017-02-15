@@ -4,10 +4,11 @@ plugins:
   - babel
   - promise
   - flowtype
+  - prettier
 
 extends:
-  - "eslint:recommended"
-  - "plugin:flowtype/recommended"
+  - eslint:recommended
+  - plugin:flowtype/recommended
 
 settings:
   flowtype:
@@ -21,7 +22,7 @@ env:
   es6: true
   node: true
 
-# http://eslint.org/docs/rules/
+# http://eslint.org/docs/rules
 rules:
   # Promise
   promise/always-return: 2
@@ -39,3 +40,8 @@ rules:
   babel/object-curly-spacing: 0
   babel/no-await-in-loop: 1
   babel/no-invalid-this: 1
+
+  # Prettier
+  prettier/prettier:
+    - error
+    - singleQuote: true

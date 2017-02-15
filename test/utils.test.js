@@ -3,26 +3,6 @@
 import * as utils from '../lib/utils';
 
 describe('utils', () => {
-  describe('stringify', () => {
-    it('should stringify a complext object', async () => {
-      const object = {
-        hello: 'world',
-        regex: /^foobar$/,
-        obj: {
-          arr: [1, 2, { test: true }]
-        }
-      };
-      expect(utils.stringify(object)).toMatchSnapshot();
-    });
-
-    it('should escape special strings', async () => {
-      const object = {
-        foo: '@variable'
-      };
-      expect(utils.stringify(object, '@')).toBe('{foo: variable}');
-    });
-  });
-
   describe('deepAssign', () => {
     it('should deeply merge two objects', async () => {
       const objectA = {
@@ -52,6 +32,17 @@ describe('utils', () => {
         }
       };
       expect(utils.deepAssign({}, objectA, objectB)).toEqual(merged);
+    });
+  });
+
+  describe('walkDirectory', () => {
+    it('should walk a directory recursively', async () => {
+      const collectedPaths = [];
+      const filePaths = await utils.walkDirectory(__dirname, async filePath => {
+        collectedPaths.push(filePath);
+      });
+      expect(filePaths.length).toEqual(4); // there are 4 files in this directory
+      expect(filePaths.sort()).toEqual(collectedPaths.sort());
     });
   });
 });
