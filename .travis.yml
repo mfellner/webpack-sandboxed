@@ -19,6 +19,10 @@ cache:
     - node_modules
 before_script:
   - yarn add coveralls codeclimate-test-reporter
+  - yarn run flow-typed-install
+script:
+  - yarn run flow-check
+  - yarn test
 after_success:
   - yarn run coveralls
   - yarn run codeclimate
