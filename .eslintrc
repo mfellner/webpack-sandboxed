@@ -38,7 +38,6 @@ rules:
   # Babel
   babel/new-cap: 1
   babel/object-curly-spacing: 0
-  babel/no-await-in-loop: 1
   babel/no-invalid-this: 1
 
   # Prettier
