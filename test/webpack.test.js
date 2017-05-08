@@ -1,6 +1,6 @@
 // @flow
 
-import { WebpackRunner, SandboxVM } from '../lib/webpack';
+import { WebpackRunner } from '../lib/webpack';
 
 describe('webpack', () => {
   it('should generate a JavaScript bundle', async () => {
