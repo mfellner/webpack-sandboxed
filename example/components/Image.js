@@ -1,4 +1,4 @@
 import React from 'react';
-import './image.css';
+import styles from './image.css';
 
-export default props => <img className="image" src={props.src} alt={props.alt} />;
+export default props => <img className={styles.image} src={props.src} alt={props.alt} />;

@@ -50,6 +50,14 @@ async function main() {
   console.log('Starting webpack-sandboxed…');
   console.time('Initialization time');
 
+  // Optional webpack plugins for optimization.
+  const productionPlugins = [
+    new webpack.DefinePlugin({
+      'process.env.NODE_ENV': JSON.stringify('production')
+    }),
+    new webpack.optimize.UglifyJsPlugin()
+  ];
+
   const webpackSandbox = await WebpackSandbox.createInstance({
     config: {
       target: 'web',
@@ -68,7 +76,12 @@ async function main() {
             test: /\.css$/,
             use: ExtractTextPlugin.extract({
               fallback: 'style-loader',
-              use: 'css-loader'
+              use: {
+                loader: 'css-loader',
+                options: {
+                  modules: true
+                }
+              }
             })
           }
         ]
@@ -77,7 +90,7 @@ async function main() {
         react: 'React',
         'react-dom': 'ReactDOM'
       },
-      plugins: [new ExtractTextPlugin('[name].[contenthash].css')]
+      plugins: [new ExtractTextPlugin('[name].[contenthash].css'), ...productionPlugins]
     },
     // Packages to load into the virtual filesystem.
     packages: [
