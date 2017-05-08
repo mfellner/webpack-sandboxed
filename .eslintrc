@@ -43,4 +43,5 @@ rules:
   # Prettier
   prettier/prettier:
     - error
-    - singleQuote: true
+    - printWidth: 100
+      singleQuote: true
