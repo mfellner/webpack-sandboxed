@@ -20,7 +20,6 @@ cache:
 before_script:
   - yarn add coveralls codeclimate-test-reporter
 script:
-  - yarn run flow-check
   - yarn test
 after_success:
   - yarn run coveralls

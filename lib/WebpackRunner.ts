@@ -1,54 +1,48 @@
-// @flow
-
-import path from 'path';
-import webpack from 'webpack';
+import path = require('path');
+import webpack = require('webpack');
 import logger from './logger';
-import * as memoryfs from './memory-fs';
+import MemoryFS = require('memory-fs');
+import createMemoryFS from './memory-fs';
 import * as utils from './utils';
 
-type WebpackBundle = { [key: string]: string };
-
-type WebpackStats = {
-  hasErrors: () => boolean,
-  hasWarnings: () => boolean,
-  toJson: (options: ?Object) => Object,
-  toString: (options: ?Object) => Object
+export type WebpackBundle = { [key: string]: string };
+export type Options = {
+  config?: webpack.Configuration,
+  packages?: string[],
+  includes?: string[],
+  basedir?: string
 };
 
-type WebpackTarget = 'web' | 'webworker' | 'node' | 'async-node' | 'node-webkit' | 'electron';
-
-type WebpackConfig = {
+export interface WebpackBaseConfiguration extends webpack.Configuration {
   context: string,
   entry: string,
-  context: string,
   output: {
     path: string,
     filename: string
   },
-  module: {
-    loaders: Array<Object>
-  },
-  target: WebpackTarget,
-  plugins: Array<Object>
-};
+  resolve: webpack.Resolve,
+  resolveLoader: webpack.ResolveLoader
+}
 
-type OnComplete = (error: ?Error, bundle: ?WebpackBundle, stats: ?WebpackStats) => void;
+type OnComplete = (error?: Error, bundle?: WebpackBundle, stats?: webpack.Stats) => void;
 
-type Options = {
-  config?: {},
-  packages?: Array<string>,
-  includes?: Array<string>,
-  basedir?: string
-};
+interface WebpackCompiler extends webpack.Compiler {
+  inputFileSystem: any;
+  resolvers: {
+    normal: any;
+    loader: any;
+    context: any;
+  };
+}
 
 const log = logger('webpack');
 const nodeModulesPath = utils.findNodeModulesPath();
 
-export class WebpackRunner {
-  memfs: memoryfs.MemoryFS;
-  config: WebpackConfig;
+export default class WebpackRunner {
+  private readonly memfs: MemoryFS;
+  private readonly config: WebpackBaseConfiguration;
 
-  constructor(memfs: memoryfs.MemoryFS, config: WebpackConfig) {
+  constructor(memfs: MemoryFS, config: WebpackBaseConfiguration) {
     this.memfs = memfs;
     this.config = config;
   }
@@ -56,7 +50,7 @@ export class WebpackRunner {
   static async createInstance(options: Options = {}): Promise<WebpackRunner> {
     const packages = options.packages || [];
     const includes = options.includes || [];
-    const config = options.config || {};
+    const config: webpack.Configuration = options.config || {};
 
     // Create webpack configuration.
     // The root directory must match the real installation directory so that tools
@@ -67,7 +61,7 @@ export class WebpackRunner {
     const output = path.join(root, 'bundle/[name].[chunkhash].js');
     const includesPath = path.join(root, 'includes');
 
-    const baseConfig = {
+    const baseConfig: WebpackBaseConfiguration = {
       context: path.dirname(entry),
       entry: `./${path.basename(entry)}`,
       output: {
@@ -81,7 +75,7 @@ export class WebpackRunner {
         modules: [path.resolve('node_modules'), path.join(root, 'node_modules')]
       }
     };
-    const webpackConfig = utils.deepAssign(baseConfig, config);
+    const webpackConfig = utils.deepAssign(config, baseConfig) as WebpackBaseConfiguration;
 
     // Webpack buildins like global, amd-define etc. are required.
     const webpackPath = require.resolve('webpack') && path.join(nodeModulesPath, 'webpack');
@@ -90,19 +84,19 @@ export class WebpackRunner {
     // This webpack dependency includes node APIs required by other modules, e.g. loaders.
     require.resolve('node-libs-browser') && packages.push('node-libs-browser');
 
-    const memfs = await memoryfs.createInstance({ packages, includes, includesPath, root });
+    const memfs = await createMemoryFS({ packages, includes, includesPath, root });
     memfs.mkdirpSync(path.dirname(output));
 
     return new WebpackRunner(memfs, webpackConfig);
   }
 
-  async runAsync(source: string, onComplete: OnComplete) {
+  private runAsync(source: string, onComplete: OnComplete): void {
     const entry = path.join(this.config.context, this.config.entry);
     this.memfs.mkdirpSync(path.dirname(entry));
     this.memfs.writeFileSync(entry, source);
 
     const outDir = this.config.output.path;
-    const compiler = webpack(this.config);
+    const compiler = webpack(this.config) as WebpackCompiler;
 
     compiler.inputFileSystem = this.memfs;
     compiler.outputFileSystem = this.memfs;
@@ -121,14 +115,14 @@ export class WebpackRunner {
         {}
       );
       this.memfs.rmdirSync(outDir);
-      onComplete(null, bundle, stats);
+      onComplete(undefined, bundle, stats);
     });
   }
 
-  async run(source: string): Promise<[WebpackBundle, WebpackStats]> {
-    return new Promise(async (resolve, reject) => {
+  run(source: string): Promise<[WebpackBundle, webpack.Stats]> {
+    return new Promise((resolve, reject) => {
       log.debug('Executing script...');
-      await this.runAsync(source, (error, bundle, stats) => {
+      this.runAsync(source, (error, bundle, stats) => {
         if (error) {
           log.error('Failed to execute script.');
           reject(error);
@@ -146,18 +140,18 @@ export class WebpackRunner {
     });
   }
 
-  nodeModulesInContext(): Array<string> {
+  nodeModulesInContext(): string[] {
     return this.memfs.readdirSync(path.join(this.config.context, 'node_modules'));
   }
 
-  toJSON() {
+  toJSON(): object {
     return {
       config: Object.freeze(Object.assign({}, this.config)),
       node_modules: this.nodeModulesInContext().sort()
     };
   }
 
-  toString() {
+  toString(): string {
     return JSON.stringify(this.toJSON(), null, 2);
   }
 }

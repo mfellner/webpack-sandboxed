@@ -1,9 +1,7 @@
-// @flow
-
-import fs from 'fs';
-import path from 'path';
-import webpack from 'webpack';
-import ExtractTextPlugin from 'extract-text-webpack-plugin';
+import fs = require('fs');
+import path = require('path');
+import webpack = require('webpack');
+import ExtractTextPlugin = require('extract-text-webpack-plugin');
 import WebpackSandbox from '../lib';
 
 // Script source to compile with webpack.
@@ -31,7 +29,7 @@ ReactDOM.render(<Main />, document.getElementById('main'));
 `;
 
 // HTML template to inject compiled output into.
-const html = ({ js, css }, reactVersion = '15.5.4') =>
+const html = ({ js, css }: { js: string; css: string; }, reactVersion = '15.5.4') =>
   `
 <html>
   <head>

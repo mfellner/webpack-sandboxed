@@ -1,9 +1,7 @@
-// @flow
+import fs = require('fs');
+import path = require('path');
 
-import fs from 'fs';
-import path from 'path';
-
-export function fsReaddir(dirpath: string) {
+export function fsReaddir(dirpath: string): Promise<string[]> {
   return new Promise((resolve, reject) => {
     fs.readdir(dirpath, (error, files) => {
       if (error) return reject(error);
@@ -12,7 +10,7 @@ export function fsReaddir(dirpath: string) {
   });
 }
 
-export function fsReadFile(filepath: string) {
+export function fsReadFile(filepath: string): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     fs.readFile(filepath, (error, data) => {
       if (error) return reject(error);
@@ -31,18 +29,18 @@ export function fsStat(dirpath: string): Promise<fs.Stats> {
 }
 
 export function fsPipe(inStream: fs.ReadStream, outStream: fs.WriteStream): Promise<void> {
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     inStream.pipe(outStream);
     outStream.on('finish', () => resolve());
-    outStream.on('error', error => reject(error));
+    outStream.on('error', (e: Error) => reject(e));
   });
 }
 
 export async function walkDirectory(
   root: string,
-  callback: ?(file: string) => Promise<void>
-): Promise<Array<string>> {
-  let files = [];
+  callback?: (file: string) => Promise<void>
+): Promise<string[]> {
+  let files: string[] = [];
   try {
     files = await fsReaddir(root);
     if (files.length === 0) return [];
@@ -66,16 +64,18 @@ export async function walkDirectory(
   ).then(paths => paths.reduce((collected, subPaths) => collected.concat(subPaths)));
 }
 
-export function deepAssign(...objects: Array<Object>): Object {
+export type Assignable = { [key: string]: any };
+
+export function deepAssign(...objects: Assignable[]): Assignable {
   const obj = objects[0];
   for (let i = 1; i < objects.length; i += 1) {
     const other = objects[i];
-    for (let key of Object.keys(other)) {
+    for (const key of Object.keys(other)) {
       const val = other[key];
       if (Array.isArray(val)) {
         if (Array.isArray(obj[key])) {
-          const arr = [].concat(obj[key]);
-          for (let x of val) {
+          const arr: any[] = [].concat(obj[key]);
+          for (const x of val) {
             if (!arr.includes(x)) {
               arr.push(x);
             }
@@ -103,5 +103,9 @@ export function deepAssign(...objects: Array<Object>): Object {
  * Example: /foo/bar/node_modules/memory-fs => /foo/bar/node_modules
  */
 export function findNodeModulesPath(): string {
-  return /^(.*)(\/|\\)memory-fs(\/|\\)/.exec(require.resolve('memory-fs'))[1];
+  const match = /^(.*)(\/|\\)memory-fs(\/|\\)/.exec(require.resolve('memory-fs'));
+  if (!match) {
+    throw new Error('memory-fs is not installed!');
+  }
+  return match[1];
 }

@@ -4,8 +4,8 @@ Webpack in a Sandbox.
 
 **Usage:**
 
-```javascript
-import WebpackSandbox from 'webpack-sandboxed'
+```typescript
+import WebpackSandbox = require('webpack-sandboxed')
 
 const options = {
   config: { /* webpack configuration */ },
