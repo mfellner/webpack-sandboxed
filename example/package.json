@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "DEBUG=webpack-sandboxed:* ../node_modules/.bin/babel-node main.js"
+    "start": "DEBUG=webpack-sandboxed:* ../node_modules/.bin/ts-node main.ts"
   }
 }

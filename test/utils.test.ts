@@ -1,4 +1,4 @@
-// @flow
+/// <reference types="jest" />
 
 import * as utils from '../lib/utils';
 
@@ -37,7 +37,7 @@ describe('utils', () => {
 
   describe('walkDirectory', () => {
     it('should walk a directory recursively', async () => {
-      const collectedPaths = [];
+      const collectedPaths: string[] = [];
       const filePaths = await utils.walkDirectory(__dirname, async filePath => {
         collectedPaths.push(filePath);
       });

@@ -1,27 +1,24 @@
-// @flow
-
-import fs from 'fs';
-import path from 'path';
-import requireResolve from 'resolve';
-import MemoryFS from 'memory-fs';
+import fs = require('fs');
+import path = require('path');
+import requireResolve = require('resolve');
+import MemoryFS = require('memory-fs');
 import logger from './logger';
 import * as utils from './utils';
 
-export type { MemoryFS } from 'memory-fs';
-type Arguments = {
-  packages?: Array<string>,
-  includes?: Array<string>,
-  includesPath?: string,
-  root?: string
+export type Arguments = {
+  packages?: string[];
+  includes?: string[];
+  includesPath?: string;
+  root?: string;
 };
 
 const log = logger('memory-fs');
 const nodeModulesDirName = path.basename(utils.findNodeModulesPath());
 
 class PackageLoader {
-  root: string;
-  memfs: MemoryFS;
-  cache: { [key: string]: boolean };
+  private readonly root: string;
+  private readonly memfs: MemoryFS;
+  private readonly cache: { [key: string]: boolean };
 
   constructor(root: string, memfs: MemoryFS) {
     this.root = root;
@@ -29,8 +26,8 @@ class PackageLoader {
     this.cache = {};
   }
 
-  async resolvePackage(packageName: string): Promise<string> {
-    const mainFilePath = await new Promise((resolve, reject) => {
+  private async resolvePackage(packageName: string): Promise<string> {
+    const mainFilePath = await new Promise<string>((resolve, reject) => {
       requireResolve(
         packageName,
         {
@@ -43,15 +40,19 @@ class PackageLoader {
       );
     });
     // Extract the package path (excluding the path of the main file).
-    return new RegExp(`(.*.${nodeModulesDirName}.${packageName}).`).exec(mainFilePath)[1];
+    const match = new RegExp(`(.*.${nodeModulesDirName}.${packageName}).`).exec(mainFilePath);
+    if (!match) {
+      throw new Error(`Cannot find ${mainFilePath} in ${packageName}`);
+    }
+    return match[1];
   }
 
-  async loadPackage(packageName: string): Promise<void> {
+  public async loadPackage(packageName: string): Promise<void> {
     // Don't resolve the same dependency twice.
     if (this.cache[packageName]) return;
     else this.cache[packageName] = true;
 
-    let packagePath;
+    let packagePath: string;
     if (path.isAbsolute(packageName)) {
       packagePath = packageName;
     } else {
@@ -65,11 +66,16 @@ class PackageLoader {
 
     await utils.walkDirectory(packagePath, async file => {
       // Extract the file path inside the node modules directory.
-      const match = new RegExp(`.*.${nodeModulesDirName}(.+)`).exec(file)[1];
-      const exportPath = path.join(this.root, 'node_modules', match);
+      const match = new RegExp(`.*.${nodeModulesDirName}(.+)`).exec(file);
+      if (!match) {
+        throw new Error(`Cannot find ${file} in ${nodeModulesDirName}`);
+      }
+      const exportPath = path.join(this.root, 'node_modules', match[1]);
 
       this.memfs.mkdirpSync(path.dirname(exportPath));
-      await utils.fsPipe(fs.createReadStream(file), this.memfs.createWriteStream(exportPath));
+      const rs = fs.createReadStream(file);
+      const ws = this.memfs.createWriteStream(exportPath, undefined);
+      await utils.fsPipe(rs, ws);
 
       // Also recursively load all dependencies of the loaded module.
       // TODO: optimize
@@ -85,7 +91,7 @@ class PackageLoader {
     });
   }
 
-  async loadFile(inputPath: string, outputPath: string) {
+  public async loadFile(inputPath: string, outputPath: string) {
     const stats = await utils.fsStat(inputPath);
 
     // If input is a file, load only this file.
@@ -94,7 +100,7 @@ class PackageLoader {
       this.memfs.mkdirpSync(path.dirname(resolvedOutputPath));
       await utils.fsPipe(
         fs.createReadStream(inputPath),
-        this.memfs.createWriteStream(resolvedOutputPath)
+        this.memfs.createWriteStream(resolvedOutputPath, undefined)
       );
       return;
     }
@@ -107,13 +113,23 @@ class PackageLoader {
       this.memfs.mkdirpSync(path.dirname(resolvedOutputPath));
       await utils.fsPipe(
         fs.createReadStream(file),
-        this.memfs.createWriteStream(resolvedOutputPath)
+        this.memfs.createWriteStream(resolvedOutputPath, undefined)
       );
     });
   }
 }
 
-export async function createInstance(args: Arguments = {}): Promise<MemoryFS> {
+/**
+ * Create a memory-fs instance. The memory filesystem can be initialized
+ * with a list of npm modules and files from the local filesystem.
+ *
+ * @param args Options for the memory filesystem.
+ * @param args.packages List of npm packages that should be loaded.
+ * @param args.includes List of local files that should be loaded.
+ * @param args.includesPath Path in the memory filesystem where local files should be placed.
+ * @param args.root Path of the working directory in the memory filesystem.
+ */
+export default async function createInstance(args: Arguments = {}): Promise<MemoryFS> {
   const root = args.root || process.cwd();
   const memfs = new MemoryFS();
   const loader = new PackageLoader(root, memfs);

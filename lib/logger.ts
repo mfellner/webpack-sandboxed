@@ -1,7 +1,5 @@
-// @flow
-
 const prefix = 'webpack-sandboxed';
-let debug;
+let debug: any;
 
 try {
   debug = require('debug');
@@ -9,12 +7,12 @@ try {
   debug = () => () => undefined;
 }
 
-type Logger = {
-  debug: (...message: Array<mixed>) => void,
-  info: (...message: Array<mixed>) => void,
-  warn: (...message: Array<mixed>) => void,
-  error: (...message: Array<mixed>) => void
-};
+export interface Logger {
+  debug(...message: any[]): void;
+  info(...message: any[]): void;
+  warn(...message: any[]): void;
+  error(...message: any[]): void;
+}
 
 export default function(name: string): Logger {
   return {
