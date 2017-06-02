@@ -12,6 +12,7 @@
     "declaration": true,
     "pretty": true,
     "removeComments": true,
+    "stripInternal": true,
     "lib": [
       "dom",
       "es2017"

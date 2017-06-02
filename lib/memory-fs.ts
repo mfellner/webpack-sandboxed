@@ -5,6 +5,9 @@ import MemoryFS = require('memory-fs');
 import logger from './logger';
 import * as utils from './utils';
 
+/**
+ * @internal
+ */
 export type Arguments = {
   packages?: string[];
   includes?: string[];
@@ -128,6 +131,7 @@ class PackageLoader {
  * @param args.includes List of local files that should be loaded.
  * @param args.includesPath Path in the memory filesystem where local files should be placed.
  * @param args.root Path of the working directory in the memory filesystem.
+ * @internal
  */
 export default async function createInstance(args: Arguments = {}): Promise<MemoryFS> {
   const root = args.root || process.cwd();
