@@ -34,7 +34,7 @@
   "devDependencies": {
     "@types/debug": "0.0.29",
     "@types/extract-text-webpack-plugin": "2.1.0",
-    "@types/jest": "19.2.3",
+    "@types/jest": "19.2.4",
     "@types/memory-fs": "0.3.0",
     "@types/resolve": "0.0.4",
     "@types/webpack": "2.2.15",
@@ -51,7 +51,7 @@
     "style-loader": "0.18.1",
     "ts-jest": "20.0.5",
     "ts-node": "3.0.4",
-    "tslint": "5.4.0",
+    "tslint": "5.4.2",
     "typedoc": "0.7.1",
     "typescript": "2.3.4",
     "webpack": "2.6.1"
