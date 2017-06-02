@@ -4,7 +4,8 @@ branches:
     - master
 language: node_js
 node_js:
-  - "6"
+  - "7.6.0"
+  - "8"
 env:
   - CXX=g++-4.8
 addons:
