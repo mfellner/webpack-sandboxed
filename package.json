@@ -1,6 +1,6 @@
 {
   "name": "webpack-sandboxed",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Webpack in a sandbox.",
   "author": "Maximilian Fellner <max.fellner@gmail.com>",
   "repository": "https://github.com/mfellner/webpack-sandboxed.git",
