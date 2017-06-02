@@ -2,12 +2,12 @@
 /lib
 /test
 /example
-/flow-typed
 /coverage
+/doc
 yarn.lock
+tsconfig.json
+tslint.json
 .travis.yml
-.babelrc
-.flowconfig
 .gitignore
 .npmignore
 .DS_Store
