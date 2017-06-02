@@ -5,14 +5,14 @@ Webpack in a Sandbox.
 **Usage:**
 
 ```typescript
-import WebpackSandbox = require('webpack-sandboxed')
+import webpackSandboxed = require('webpack-sandboxed')
 
 const options = {
   config: { /* webpack configuration */ },
   packages: [ /* names of modules to load in the sandbox */ ],
   includes: [ /* local file paths to load in the sandbox */ ]
 }
-const sandbox = await WebpackSandbox.createInstance(options)
+const sandbox = await webpackSandboxed(options)
 const [bundle, stats] = sandbox.run("exports = {foo: 'bar'};")
 ```
 

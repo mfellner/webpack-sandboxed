@@ -1,10 +1,10 @@
 /// <reference types="jest" />
 
-import WebpackRunner from '../lib/WebpackRunner';
+import webpackSandboxed from '../lib';
 
-describe('webpack', () => {
+describe('webpack-sandboxed', () => {
   it('should generate a JavaScript bundle', async () => {
-    const runner = await WebpackRunner.createInstance();
+    const runner = await webpackSandboxed();
     const [bundle, stats] = await runner.run('var x = 41 + 1;');
 
     expect(Object.keys(bundle).length).toBe(1);
