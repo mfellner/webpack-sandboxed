@@ -46,3 +46,5 @@ export default async function createInstance(options: Options = {}): Promise<Web
 
   return new WebpackRunner(memfs, webpackConfig);
 }
+
+export { default as WebpackRunner } from './WebpackRunner';
