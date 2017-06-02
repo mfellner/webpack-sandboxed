@@ -9,6 +9,7 @@
     "webpack"
   ],
   "main": "dist/index.js",
+  "types": "./dist/index.d.ts",
   "engines": {
     "node": ">=7.6.0"
   },
