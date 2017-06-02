@@ -2,7 +2,7 @@ import fs = require('fs');
 import path = require('path');
 import webpack = require('webpack');
 import ExtractTextPlugin = require('extract-text-webpack-plugin');
-import WebpackSandbox from '../lib';
+import webpackSandboxed from '../lib';
 
 // Script source to compile with webpack.
 const source = `
@@ -56,7 +56,7 @@ async function main() {
     new webpack.optimize.UglifyJsPlugin()
   ];
 
-  const webpackSandbox = await WebpackSandbox.createInstance({
+  const webpackSandbox = await webpackSandboxed({
     config: {
       target: 'web',
       module: {
@@ -85,7 +85,7 @@ async function main() {
         ]
       },
       externals: {
-        react: 'React',
+        'react': 'React',
         'react-dom': 'ReactDOM'
       },
       plugins: [new ExtractTextPlugin('[name].[contenthash].css'), ...productionPlugins]
