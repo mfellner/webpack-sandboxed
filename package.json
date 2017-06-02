@@ -16,7 +16,7 @@
     "clean": "rimraf dist/*",
     "build": "tsc -p .",
     "dist": "npm run clean && npm run build",
-    "lint": "tslint --type-check --project tsconfig.json",
+    "lint": "tslint --type-check --project tsconfig.json && tslint test/**/*.ts",
     "test": "npm run lint && jest --coverage",
     "docs": "typedoc --readme none --tsconfig tsconfig.json --out doc",
     "prepublishOnly": "npm run dist",

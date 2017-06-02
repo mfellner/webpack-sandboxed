@@ -7,21 +7,21 @@ import * as utils from './utils';
 
 export type WebpackBundle = { [key: string]: string };
 export type Options = {
-  config?: webpack.Configuration,
-  packages?: string[],
-  includes?: string[],
-  basedir?: string
+  config?: webpack.Configuration;
+  packages?: string[];
+  includes?: string[];
+  basedir?: string;
 };
 
 export interface WebpackBaseConfiguration extends webpack.Configuration {
-  context: string,
-  entry: string,
+  context: string;
+  entry: string;
   output: {
-    path: string,
-    filename: string
-  },
-  resolve: webpack.Resolve,
-  resolveLoader: webpack.ResolveLoader
+    path: string;
+    filename: string;
+  };
+  resolve: webpack.Resolve;
+  resolveLoader: webpack.ResolveLoader;
 }
 
 type OnComplete = (error?: Error, bundle?: WebpackBundle, stats?: webpack.Stats) => void;
@@ -47,7 +47,7 @@ export default class WebpackRunner {
     this.config = config;
   }
 
-  static async createInstance(options: Options = {}): Promise<WebpackRunner> {
+  public static async createInstance(options: Options = {}): Promise<WebpackRunner> {
     const packages = options.packages || [];
     const includes = options.includes || [];
     const config: webpack.Configuration = options.config || {};
@@ -82,7 +82,7 @@ export default class WebpackRunner {
     const webpackBuildinPath = path.join(webpackPath, 'buildin');
     packages.push(webpackBuildinPath);
     // This webpack dependency includes node APIs required by other modules, e.g. loaders.
-    require.resolve('node-libs-browser') && packages.push('node-libs-browser');
+    if (require.resolve('node-libs-browser')) packages.push('node-libs-browser');
 
     const memfs = await createMemoryFS({ packages, includes, includesPath, root });
     memfs.mkdirpSync(path.dirname(output));
@@ -108,8 +108,8 @@ export default class WebpackRunner {
       if (error) return onComplete(error);
       const files = this.memfs.readdirSync(outDir);
       const bundle = files.reduce(
-        (bundle, file) =>
-          Object.assign(bundle, {
+        (object, file) =>
+          Object.assign(object, {
             [file]: this.memfs.readFileSync(path.join(outDir, file)).toString()
           }),
         {}
@@ -119,7 +119,7 @@ export default class WebpackRunner {
     });
   }
 
-  run(source: string): Promise<[WebpackBundle, webpack.Stats]> {
+  public run(source: string): Promise<[WebpackBundle, webpack.Stats]> {
     return new Promise((resolve, reject) => {
       log.debug('Executing script...');
       this.runAsync(source, (error, bundle, stats) => {
@@ -140,18 +140,18 @@ export default class WebpackRunner {
     });
   }
 
-  nodeModulesInContext(): string[] {
+  private nodeModulesInContext(): string[] {
     return this.memfs.readdirSync(path.join(this.config.context, 'node_modules'));
   }
 
-  toJSON(): object {
+  public toJSON(): object {
     return {
       config: Object.freeze(Object.assign({}, this.config)),
       node_modules: this.nodeModulesInContext().sort()
     };
   }
 
-  toString(): string {
+  public toString(): string {
     return JSON.stringify(this.toJSON(), null, 2);
   }
 }

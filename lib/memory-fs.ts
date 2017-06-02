@@ -47,7 +47,7 @@ class PackageLoader {
     return match[1];
   }
 
-  async loadPackage(packageName: string): Promise<void> {
+  public async loadPackage(packageName: string): Promise<void> {
     // Don't resolve the same dependency twice.
     if (this.cache[packageName]) return;
     else this.cache[packageName] = true;
@@ -91,7 +91,7 @@ class PackageLoader {
     });
   }
 
-  async loadFile(inputPath: string, outputPath: string) {
+  public async loadFile(inputPath: string, outputPath: string) {
     const stats = await utils.fsStat(inputPath);
 
     // If input is a file, load only this file.
