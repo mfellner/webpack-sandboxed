@@ -1,7 +1,7 @@
 import fs = require('fs');
+import MemoryFS = require('memory-fs');
 import path = require('path');
 import requireResolve = require('resolve');
-import MemoryFS = require('memory-fs');
 import logger from './logger';
 import * as utils from './utils';
 
@@ -27,27 +27,6 @@ class PackageLoader {
     this.root = root;
     this.memfs = memfs;
     this.cache = {};
-  }
-
-  private async resolvePackage(packageName: string): Promise<string> {
-    const mainFilePath = await new Promise<string>((resolve, reject) => {
-      requireResolve(
-        packageName,
-        {
-          basedir: this.root,
-          // Use the path of package.json as fallback for the main file.
-          packageFilter: (pkg, pkgJson) =>
-            pkg.main ? pkg : Object.assign({}, pkg, { main: pkgJson })
-        },
-        (error, result) => (error ? reject(error) : resolve(result))
-      );
-    });
-    // Extract the package path (excluding the path of the main file).
-    const match = new RegExp(`(.*.${nodeModulesDirName}.${packageName}).`).exec(mainFilePath);
-    if (!match) {
-      throw new Error(`Cannot find ${mainFilePath} in ${packageName}`);
-    }
-    return match[1];
   }
 
   public async loadPackage(packageName: string): Promise<void> {
@@ -119,6 +98,27 @@ class PackageLoader {
         this.memfs.createWriteStream(resolvedOutputPath, undefined)
       );
     });
+  }
+
+  private async resolvePackage(packageName: string): Promise<string> {
+    const mainFilePath = await new Promise<string>((resolve, reject) => {
+      requireResolve(
+        packageName,
+        {
+          basedir: this.root,
+          // Use the path of package.json as fallback for the main file.
+          packageFilter: (pkg, pkgJson) =>
+            pkg.main ? pkg : Object.assign({}, pkg, { main: pkgJson })
+        },
+        (error, result) => (error ? reject(error) : resolve(result))
+      );
+    });
+    // Extract the package path (excluding the path of the main file).
+    const match = new RegExp(`(.*.${nodeModulesDirName}.${packageName}).`).exec(mainFilePath);
+    if (!match) {
+      throw new Error(`Cannot find ${mainFilePath} in ${packageName}`);
+    }
+    return match[1];
   }
 }
 
