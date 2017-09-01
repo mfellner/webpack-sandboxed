@@ -5,8 +5,23 @@
   ],
   "jsRules": {},
   "rules": {
-    "trailing-comma": false,
-    "quotemark": "single",
+    "trailing-comma": [
+      false
+    ],
+    "quotemark": [
+      true,
+      "single",
+      "jsx-double"
+    ],
+    "object-literal-key-quotes": [
+      true,
+      "as-needed"
+    ],
+    "no-console": [
+      true,
+      "log",
+      "error"
+    ],
     "no-var-requires": false,
     "object-literal-sort-keys": false,
     "interface-over-type-literal": false,
@@ -23,7 +38,7 @@
       "ignore-same-line"
     ],
     "member-ordering": [
-      "true",
+      true,
       {
         "order": "fields-first"
       }

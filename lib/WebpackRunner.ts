@@ -1,9 +1,9 @@
+import MemoryFS = require('memory-fs');
 import path = require('path');
 import webpack = require('webpack');
 import logger from './logger';
-import MemoryFS = require('memory-fs');
 
-export type WebpackBundle = { [key: string]: string };
+export type WebpackBundle = { [key: string]: Buffer };
 export type Options = {
   config?: webpack.Configuration;
   packages?: string[];
@@ -44,36 +44,7 @@ export default class WebpackRunner {
     this.config = config;
   }
 
-  private runAsync(source: string, onComplete: OnComplete): void {
-    const entry = path.join(this.config.context, this.config.entry);
-    this.memfs.mkdirpSync(path.dirname(entry));
-    this.memfs.writeFileSync(entry, source);
-
-    const outDir = this.config.output.path;
-    const compiler = webpack(this.config) as WebpackCompiler;
-
-    compiler.inputFileSystem = this.memfs;
-    compiler.outputFileSystem = this.memfs;
-    compiler.resolvers.normal.fileSystem = this.memfs;
-    compiler.resolvers.loader.fileSystem = this.memfs;
-    compiler.resolvers.context.fileSystem = this.memfs;
-
-    compiler.run((error, stats) => {
-      if (error) return onComplete(error);
-      const files = this.memfs.readdirSync(outDir);
-      const bundle = files.reduce(
-        (object, file) =>
-          Object.assign(object, {
-            [file]: this.memfs.readFileSync(path.join(outDir, file)).toString()
-          }),
-        {}
-      );
-      this.memfs.rmdirSync(outDir);
-      onComplete(undefined, bundle, stats);
-    });
-  }
-
-  public run(source: string): Promise<[WebpackBundle, webpack.Stats]> {
+  public run(source: string | Buffer): Promise<[WebpackBundle, webpack.Stats]> {
     return new Promise((resolve, reject) => {
       log.debug('Executing script...');
       this.runAsync(source, (error, bundle, stats) => {
@@ -94,10 +65,6 @@ export default class WebpackRunner {
     });
   }
 
-  private nodeModulesInContext(): string[] {
-    return this.memfs.readdirSync(path.join(this.config.context, 'node_modules'));
-  }
-
   public toJSON(): object {
     return {
       config: Object.freeze(Object.assign({}, this.config)),
@@ -107,5 +74,38 @@ export default class WebpackRunner {
 
   public toString(): string {
     return JSON.stringify(this.toJSON(), null, 2);
+  }
+
+  private runAsync(source: string | Buffer, onComplete: OnComplete): void {
+    const entry = path.join(this.config.context, this.config.entry);
+    this.memfs.mkdirpSync(path.dirname(entry));
+    this.memfs.writeFileSync(entry, source);
+
+    const outDir = this.config.output.path;
+    const compiler = webpack(this.config) as WebpackCompiler;
+
+    compiler.inputFileSystem = this.memfs;
+    compiler.outputFileSystem = this.memfs;
+    compiler.resolvers.normal.fileSystem = this.memfs;
+    compiler.resolvers.loader.fileSystem = this.memfs;
+    compiler.resolvers.context.fileSystem = this.memfs;
+
+    compiler.run((error, stats) => {
+      if (error) return onComplete(error);
+      const files = this.memfs.readdirSync(outDir);
+      const bundle = files.reduce(
+        (object, file) =>
+          Object.assign(object, {
+            [file]: this.memfs.readFileSync(path.join(outDir, file))
+          }),
+        {} as WebpackBundle
+      );
+      this.memfs.rmdirSync(outDir);
+      onComplete(undefined, bundle, stats);
+    });
+  }
+
+  private nodeModulesInContext(): string[] {
+    return this.memfs.readdirSync(path.join(this.config.context, 'node_modules'));
   }
 }
