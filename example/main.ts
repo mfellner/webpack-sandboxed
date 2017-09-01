@@ -1,7 +1,8 @@
+import ExtractTextPlugin = require('extract-text-webpack-plugin');
 import fs = require('fs');
 import path = require('path');
 import webpack = require('webpack');
-import ExtractTextPlugin = require('extract-text-webpack-plugin');
+import { Plugin } from 'webpack';
 import webpackSandboxed from '../lib';
 
 // Script source to compile with webpack.
@@ -29,7 +30,7 @@ ReactDOM.render(<Main />, document.getElementById('main'));
 `;
 
 // HTML template to inject compiled output into.
-const html = ({ js, css }: { js: string; css: string; }, reactVersion = '15.5.4') =>
+const html = ({ js, css }: { js: string; css: string }, reactVersion = '15.6.1') =>
   `
 <html>
   <head>
@@ -45,15 +46,20 @@ const html = ({ js, css }: { js: string; css: string; }, reactVersion = '15.5.4'
 `;
 
 async function main() {
-  console.log('Starting webpack-sandboxed…');
+  console.info('Starting webpack-sandboxed…');
   console.time('Initialization time');
 
   // Optional webpack plugins for optimization.
-  const productionPlugins = [
+  const productionPlugins: Plugin[] = [
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify('production')
     }),
     new webpack.optimize.UglifyJsPlugin()
+  ];
+
+  const plugins: Plugin[] = [
+    new ExtractTextPlugin('[name].[contenthash].css'),
+    ...productionPlugins
   ];
 
   const webpackSandbox = await webpackSandboxed({
@@ -85,10 +91,10 @@ async function main() {
         ]
       },
       externals: {
-        'react': 'React',
+        react: 'React',
         'react-dom': 'ReactDOM'
       },
-      plugins: [new ExtractTextPlugin('[name].[contenthash].css'), ...productionPlugins]
+      plugins
     },
     // Packages to load into the virtual filesystem.
     packages: [
@@ -109,17 +115,17 @@ async function main() {
   // console.log('Webpack Sandbox: %s', webpackSandbox);
 
   const [bundle, stats] = await webpackSandbox.run(source);
-  console.log(stats.toString({ colors: true }));
+  console.info(stats.toString({ colors: true }));
 
   const fileNames = Object.keys(bundle);
   console.info('Created files', fileNames);
 
   // Collect all source strings.
   const js = '\n'.concat(
-    ...fileNames.filter(file => file.endsWith('.js')).map(file => bundle[file])
+    ...fileNames.filter(f => f.endsWith('.js')).map(f => bundle[f].toString())
   );
   const css = '\n'.concat(
-    ...fileNames.filter(file => file.endsWith('.css')).map(file => bundle[file])
+    ...fileNames.filter(f => f.endsWith('.css')).map(f => bundle[f].toString())
   );
 
   // Generate markup from a string.
