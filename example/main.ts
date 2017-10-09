@@ -30,12 +30,12 @@ ReactDOM.render(<Main />, document.getElementById('main'));
 `;
 
 // HTML template to inject compiled output into.
-const html = ({ js, css }: { js: string; css: string }, reactVersion = '15.6.1') =>
+const html = ({ js, css }: { js: string; css: string }) =>
   `
 <html>
   <head>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/${reactVersion}/react.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/${reactVersion}/react-dom.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/16.0.0/umd/react.development.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/16.0.0/umd/react-dom.development.js"></script>
     <style>${css}</style>
   <head/>
   <body>
